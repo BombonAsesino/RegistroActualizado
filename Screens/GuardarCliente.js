@@ -1,16 +1,21 @@
 import { StyleSheet, View, Text, TextInput, Alert, TouchableOpacity } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function GuardarCliente({ navigation, route }) {
-  const { agregarNuevoCliente } = route.params;
-  const [cliente, setCliente] = useState({
+  const { agregarNuevoCliente, clienteEditar } = route.params;
+
+
+const [cliente, setCliente] = useState(
+  route.params.clienteEditar || {
     cedula: '',
     nombres: '',
     apellidos: '',
     fechaN: '',
     sexo: ''
-  });
+  }
+);
+
 
   const validarCampos = () => {
     if (!cliente.cedula || !cliente.nombres || !cliente.apellidos) {
@@ -21,12 +26,19 @@ export default function GuardarCliente({ navigation, route }) {
   };
 
   const guardar = () => {
-    if (!validarCampos()) return;
-    
-    agregarNuevoCliente(cliente);
-    Alert.alert('Éxito', 'Cliente registrado correctamente');
-    navigation.goBack();
-  };
+  if (!validarCampos()) return;
+  
+  if (route.params.clienteEditar) {
+    // Modo edición - actualizar el cliente existente
+    route.params.agregarNuevoCliente(cliente);
+    Alert.alert('Cliente actualizado correctamente');
+  } else {
+    // Modo creación - agregar nuevo cliente
+    route.params.agregarNuevoCliente(cliente);
+    Alert.alert('Cliente guardado correctamente');
+  }
+  navigation.goBack();
+};
 
   return (
     <View style={styles.container}>
@@ -38,6 +50,7 @@ export default function GuardarCliente({ navigation, route }) {
         value={cliente.cedula}
         placeholder="Ej: 365-220904-1012A"
         onChangeText={(text) => setCliente({...cliente, cedula: text})}
+        editable={!clienteEditar}
       />
 
       <Text style={styles.label}>Nombres:</Text>
